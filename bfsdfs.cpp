@@ -6,23 +6,20 @@
 
 using namespace std;
 
-class Graph
-{
+class Graph {
     int V;
     vector<vector<int>> adj;
 
 public:
     Graph(int V) : V(V), adj(V) {}
 
-    void addEdge(int v, int w)
-    {
+    void addEdge(int v, int w) {
         adj[v].push_back(w);
         adj[w].push_back(v);
     }
 
     // Parallel BFS
-    void parallelBFS(int startNode)
-    {
+    void parallelBFS(int startNode) {
         vector<bool> visited(V, false);
         vector<int> current_level;
 
@@ -31,41 +28,38 @@ public:
 
         cout << "Parallel BFS: ";
 
-        while (!current_level.empty())
-        {
+        while (!current_level.empty()) {
             vector<int> next_level;
 
-// Process current level in parallel
-#pragma omp parallel
+            // Process current level in parallel
+            #pragma omp parallel
             {
                 vector<int> local_next;
-#pragma omp for nowait
-                for (int i = 0; i < current_level.size(); i++)
-                {
+                
+                #pragma omp for nowait
+                for (int i = 0; i < current_level.size(); i++) {
                     int u = current_level[i];
 
-#pragma omp critical
+                    #pragma omp critical
                     cout << u << " ";
 
-                    for (int v : adj[u])
-                    {
+                    for (int v : adj[u]) {
                         bool already_visited;
-#pragma omp critical
+                        #pragma omp critical
                         {
                             already_visited = visited[v];
                             if (!already_visited)
                                 visited[v] = true;
                         }
 
-                        if (!already_visited)
-                        {
+                        if (!already_visited) {
                             local_next.push_back(v);
                         }
                     }
                 }
 
-// Merge local frontiers into the global next level
-#pragma omp critical
+                // Merge local frontiers into the global next level
+                #pragma omp critical
                 next_level.insert(next_level.end(), local_next.begin(), local_next.end());
             }
             current_level = next_level;
@@ -74,14 +68,13 @@ public:
     }
 
     // Parallel DFS using Tasks
-    void parallelDFS(int startNode)
-    {
+    void parallelDFS(int startNode) {
         vector<bool> visited(V, false);
         cout << "Parallel DFS: ";
 
-#pragma omp parallel
+        #pragma omp parallel
         {
-#pragma omp single
+            #pragma omp single
             {
                 dfsRecursive(startNode, visited);
             }
@@ -89,35 +82,30 @@ public:
         cout << endl;
     }
 
-    void dfsRecursive(int u, vector<bool> &visited)
-    {
+    void dfsRecursive(int u, vector<bool> &visited) {
         bool should_visit = false;
 
-#pragma omp critical
+        #pragma omp critical
         {
-            if (!visited[u])
-            {
+            if (!visited[u]) {
                 visited[u] = true;
                 should_visit = true;
             }
         }
 
-        if (should_visit)
-        {
-#pragma omp critical
+        if (should_visit) {
+            #pragma omp critical
             cout << u << " ";
 
-            for (int v : adj[u])
-            {
-#pragma omp task
+            for (int v : adj[u]) {
+                #pragma omp task
                 dfsRecursive(v, visited);
             }
         }
     }
 };
 
-int main()
-{
+int main() {
     int nodes = 7;
     Graph g(nodes);
 
@@ -130,8 +118,7 @@ int main()
     g.addEdge(2, 5);
     g.addEdge(2, 6);
 
-    cout << "Running with " << omp_get_max_threads() << " threads.\n"
-         << endl;
+    cout << "Running with " << omp_get_max_threads() << " threads.\n" << endl;
 
     g.parallelBFS(0);
     g.parallelDFS(0);
@@ -139,5 +126,6 @@ int main()
     return 0;
 }
 
+// Compilation and execution commands:
 // g++ -fopenmp bfsdfs.cpp -o bfsdfs.exe
 // ./bfsdfs.exe

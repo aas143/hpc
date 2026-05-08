@@ -18,7 +18,6 @@ public:
         adj[w].push_back(v);
     }
 
-    // Parallel BFS
     void parallelBFS(int startNode) {
         vector<bool> visited(V, false);
         vector<int> current_level;
@@ -31,7 +30,6 @@ public:
         while (!current_level.empty()) {
             vector<int> next_level;
 
-            // Process current level in parallel
             #pragma omp parallel
             {
                 vector<int> local_next;
@@ -58,7 +56,6 @@ public:
                     }
                 }
 
-                // Merge local frontiers into the global next level
                 #pragma omp critical
                 next_level.insert(next_level.end(), local_next.begin(), local_next.end());
             }
@@ -67,7 +64,6 @@ public:
         cout << endl;
     }
 
-    // Parallel DFS using Tasks
     void parallelDFS(int startNode) {
         vector<bool> visited(V, false);
         cout << "Parallel DFS: ";
@@ -109,8 +105,6 @@ int main() {
     int nodes = 7;
     Graph g(nodes);
 
-    // Creating a simple graph
-    // 0 - 1, 0 - 2, 1 - 3, 1 - 4, 2 - 5, 2 - 6
     g.addEdge(0, 1);
     g.addEdge(0, 2);
     g.addEdge(1, 3);
@@ -126,6 +120,6 @@ int main() {
     return 0;
 }
 
-// Compilation and execution commands:
+
 // g++ -fopenmp bfsdfs.cpp -o bfsdfs.exe
 // ./bfsdfs.exe

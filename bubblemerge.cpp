@@ -54,12 +54,15 @@ void parMerge(vector<int>& a, int l, int r) {
 }
 
 int main() {
-    int n = 10000;
-    vector<int> arr(n), temp;
-    for (int i = 0; i < n; i++) arr[i] = rand() % 10000;
+    int n;
+    cout << "Enter number of elements: ";
+    cin >> n;
 
-    cout << "Array size: " << n << endl;
-    cout << "Threads: " << omp_get_max_threads() << "\n\n";
+    vector<int> arr(n), temp;
+    cout << "Enter elements:\n";
+    for (int i = 0; i < n; i++) cin >> arr[i];
+
+    cout << "\nThreads: " << omp_get_max_threads() << "\n\n";
 
     double t1, t2;
 
